@@ -1,3 +1,13 @@
+/*
+Plugin Name: Stars Reports
+Plugin URI: http://starswebservice.com
+Description: Plugin to obtain a multitude of Astrology Reports
+Version: 2.1
+
+History
+2.1
+Lunar Return functionality added
+*/
 function sr_checkdate(datefield,dateinputstyle) {
 
     /*
@@ -516,13 +526,32 @@ function sr_checkreporttype(reporttype)
     }
     else
     {
-       for (count = 1; count <=secondpersonentryelements; count++)
+       for (count = 1; count <=returnelements; count++)
        {
            ele = 'firstreturnentry' + count;
            if (document.getElementById(ele))
                document.getElementById(ele).style.display = '';
        }
        sr_checkusebirth(document.getElementById('usebirth1'),'first');
+    }
+    if (reporttypeval != 'LUNAR RETURN')
+    {
+       for (count = 1; count <=returnelements; count++)
+       {
+           ele = 'firstlreturnentry' + count;
+           if (document.getElementById(ele))
+               document.getElementById(ele).style.display = 'none';
+       }
+    }
+    else
+    {
+       for (count = 1; count <=returnelements; count++)
+       {
+           ele = 'firstlreturnentry' + count;
+           if (document.getElementById(ele))
+               document.getElementById(ele).style.display = '';
+       }
+       sr_checkusebirth(document.getElementById('lusebirth1'),'firstl');
     }
     if (reporttypeval != 'FORECAST')
     {

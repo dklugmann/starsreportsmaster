@@ -3,7 +3,7 @@
 Plugin Name: Stars Reports
 Plugin URI: http://starswebservice.com
 Description: Plugin to obtain a multitude of Astrology Reports
-Version: 2.4
+Version: 2.5
 
 History
 2.1
@@ -13,8 +13,10 @@ Break added before (Discounted by)
 Unknown Birth Time disabled for non Natal and Child reports.
 2.3
 Warnings removed and green styling removed
-2.4 
+2.4
 Composite functionality added
+2.5
+Lunar Return functionality added
 
 Author: David Klugmann	
 Author URI: http://www.starswebservice.com
@@ -68,6 +70,7 @@ function sr_display_input_form()
     global $failedmultipletown1;
     global $foundvaguetown1;
     global $townmatch2;
+    global $towncount2;
     global $failednoname2;
     global $failednogender2;
     global $failednotown2;
@@ -79,19 +82,29 @@ function sr_display_input_form()
     global $failedmultipletown2;
     global $foundvaguetown2;
     global $townmatchreturn1;
+    global $towncountreturn1;
     global $failednotownreturn1;
     global $failednocountryreturn1;
     global $failedzerotownreturn1;
-    global $founddmultipletownreturn1;
+    global $foundmultipletownreturn1;
     global $failedmultipletownreturn1;
     global $foundvaguetownreturn1;
     global $townmatchreturn2;
+    global $towncountreturn2;
     global $failednotownreturn2;
     global $failednocountryreturn2;
     global $failedzerotownreturn2;
-    global $founddmultipletownreturn2;
+    global $foundmultipletownreturn2;
     global $failedmultipletownreturn2;
     global $foundvaguetownreturn2;
+    global $townmatchlreturn1;
+    global $towncountlreturn1;
+    global $failednotownlreturn1;
+    global $failednocountrylreturn1;
+    global $failedzerotownlreturn1;
+    global $foundmultipletownlreturn1;
+    global $failedmultipletownlreturn1;
+    global $foundvaguetownlreturn1;
     global $failednoemail;
     global $starspath;
     global $nextpage;
@@ -136,6 +149,13 @@ function sr_display_input_form()
     $whichreturn2 = $_POST['whichreturn2'];
     $townreturn2 =  $_POST["townreturn2"];
     $townselectreturn2 = $_POST['townselectreturn2'];
+    $lusebirth1 = $_POST['lusebirth1'];
+    if (!$lusebirth1)
+        $lusebirth1 = 'N';
+    $whichlreturn1 = $_POST['whichlreturn1'];
+    $extralreturn1 = $_POST['extralreturn1'];
+    $townlreturn1 =  $_POST["townlreturn1"];
+    $townselectlreturn1 = $_POST['townselectlreturn1'];
     $timedisplaystyle = 'HH:MI:SS AM/PM';
     $dateinputstyle = 'CHOOSE';
     $nousstates = 52;
@@ -160,6 +180,16 @@ function sr_display_input_form()
     {
         $countryidreturn1 = $_POST['countryidreturn1'];
         $countryidreturn2 = $_POST['countryidreturn2'];
+    }
+    if ( !isset( $_POST['submitted2'] ) && $nextpage == 2 && $reporttype != 'LUNAR RETURN') 
+    {
+         $countryidlreturn1 = -1;
+         $countryidlreturn2 = -1;
+    }
+    else
+    {
+        $countryidlreturn1 = $_POST['countryidlreturn1'];
+        $countryidlreturn2 = $_POST['countryidlreturn2'];
     }
 
     if ( !isset( $_POST['submitted1'] ) && $nextpage == 1) 
@@ -224,18 +254,24 @@ function sr_display_input_form()
         if ($report_currency == 'USD')
             $currencysymbol = '$';
         elseif ($report_currency == 'EUR')
-            $currencysymbol = '€';
+            $currencysymbol = 'â‚¬';
         elseif ($report_currency == 'GBP')
-            $currencysymbol = '£';
+            $currencysymbol = 'Â£';
 
         $paramname = 'EXTRA_FORECASTS_DISCOUNT';
         $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
         $returnxmlstring = sr_stars_loadXML($url);
         $extra_forecasts_discount = (int) $returnxmlstring->paramvalue[0];
+
         $paramname = 'EXTRA_SOLAR_RETURNS_DISCOUNT';
         $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
         $returnxmlstring = sr_stars_loadXML($url);
         $extra_solar_returns_discount = (int) $returnxmlstring->paramvalue[0];
+
+        $paramname = 'EXTRA_LUNAR_RETURNS_DISCOUNT';
+        $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
+        $returnxmlstring = sr_stars_loadXML($url);
+        $extra_lunar_returns_discount = (int) $returnxmlstring->paramvalue[0];
 
         $paramname = 'REPORT_TYPE';
         $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
@@ -521,7 +557,7 @@ function sr_display_input_form()
         printf ("<tr id=\"firstreturnentry1\"><td colspan=2 class=\"persontitle\">Enter Solar Return Details</td></tr>");
         printf ("<tr id=\"firstreturnentry2\"><td class=\"entrytitle\">Use Birth Location</td>");
         printf ("<td class=\"entrystandard\"><input style=\"padding:0px; margin:0px; border:0px;\" name=\"usebirth1\" id=\"usebirth1\" type=\"checkbox\" value=\"Y\" onclick=\"sr_checkusebirth(this,'first')\"");
-        if ((!isset( $_POST['submitted1'] ) && $usebirth1 != 'N') || $usebirth1 == 'Y')
+        if (!isset( $_POST['submitted1']) || $usebirth1 == 'Y')
             printf (" checked");
         printf ("></input></td></tr>");
         if (!$foundmultipletownreturn1)
@@ -539,7 +575,7 @@ function sr_display_input_form()
         if ($failednocountryreturn1)
             printf ("<tr id=\"firstreturnentry6\"><td colspan=2 class=\"errormessage\">*Please select a US State / Country</td></tr>");
         printf ("<tr id=\"firstreturnentry7\">");
-        printf ("<td class=\"entrytitle\">US State / Country [%d]</td>",$countryidreturn1);
+        printf ("<td class=\"entrytitle\">US State / Country</td>");
         printf ("<td class=\"entrystandard\">");
         $url = $starspath . "/listcountries.php";
         $returnxmlstring = sr_stars_loadXML($url);
@@ -636,6 +672,124 @@ function sr_display_input_form()
             printf (">%d</option>",$count);
         }
         printf ("</select></td></tr>");
+        printf ("<tr id=\"firstlreturnentry1\"><td colspan=2 class=\"persontitle\">Enter Lunar Return Details</td></tr>");
+        printf ("<tr id=\"firstlreturnentry2\"><td class=\"entrytitle\">Use Birth Location</td>");
+        printf ("<td class=\"entrystandard\"><input style=\"padding:0px; margin:0px; border:0px;\" name=\"lusebirth1\" id=\"lusebirth1\" type=\"checkbox\" value=\"Y\" onclick=\"sr_checkusebirth(this,'firstl')\"");
+        if (!isset( $_POST['submitted1'] ) || $lusebirth1 == 'Y')
+            printf (" checked");
+        printf ("></input></td></tr>");
+        if (!$foundmultipletownlreturn1)
+        {
+        if ($failednotownilreturn1)
+            printf ("<tr id=\"firstlreturnentry3\"><td colspan=2 class=\"errormessage\">*Please enter a City</td></tr>");
+        elseif ($foundvaguetownlreturn1)
+        {
+            printf ("<tr><td colspan=2 class=\"errormessage\">*Closest Town Listed / Please proceed to Confirm</td></tr>");
+            $townlreturn1 = $townmatchlreturn1[0]->town;
+        }
+        elseif ($failedzerotownlreturn1)
+            printf ("<tr id=\"firstlreturnentry4\"><td colspan=2 class=\"errormessage\">*Failed to find that city in the US State / Country</td></tr>");
+        printf ("<tr id=\"firstlreturnentry5\"><td class=\"entrytitle\">Enter City Only</td><td class=\"entrystandard\"><input type=\"text\" class=\"entryinput\" id=\"townlreturn1\" name=\"townlreturn1\" value=\"%s\"></input></td></tr>",$townlreturn1);
+        if ($failednocountrylreturn1)
+            printf ("<tr id=\"firstlreturnentry6\"><td colspan=2 class=\"errormessage\">*Please select a US State / Country</td></tr>");
+        printf ("<tr id=\"firstlreturnentry7\">");
+        printf ("<td class=\"entrytitle\">US State / Country</td>");
+        printf ("<td class=\"entrystandard\">");
+        $url = $starspath . "/listcountries.php";
+        $returnxmlstring = sr_stars_loadXML($url);
+        printf ("<select class=\"entryinput\" name=\"countryidlreturn1\" id=\"countryidlreturn1\" size=1>");
+        printf ("<option value=-1></option>");
+        $displaywalesret1 = FALSE;
+        $displayscotlandret1 = FALSE;
+        $displayenglandret1 = FALSE;
+        $displaynirelandret1 = FALSE;
+        for ($count = $nousstates; $count <$returnxmlstring->rowsreturned; $count++)
+        {
+            if ((strcasecmp($returnxmlstring->country[$count],"Wales") > 0) && $displaywalesret1 == FALSE)
+            {
+                printf ("<option value=%d", WALESID);
+                if ($countryidlreturn1 == WALESID)
+                    printf (" selected=selected");
+                printf (">%s</option>","Wales");
+                $displaywalesret1 = TRUE;
+            }
+            if ((strcasecmp($returnxmlstring->country[$count],"Scotland") > 0) && $displayscotlandret1 == FALSE)
+            {
+                printf ("<option value=%d", SCOTLANDID);
+                if ($countryidlreturn1 == SCOTLANDID)
+                    printf (" selected=selected");
+                printf (">%s</option>","Scotland");
+                $displayscotlandret1 = TRUE;
+            }
+            if ((strcasecmp($returnxmlstring->country[$count],"England") > 0) && $displayenglandret1 == FALSE)
+            {
+                printf ("<option value=%d", ENGLANDID);
+                if ($countryidlreturn1 == ENGLANDID)
+                    printf (" selected=selected");
+                printf (">%s</option>","England");
+                $displayenglandret1 = TRUE;
+            }
+            if ((strcasecmp($returnxmlstring->country[$count],"Northern Ireland") > 0) && $displaynirelandret1 == FALSE)
+            {
+                printf ("<option value=%d", NIRELANDID);
+                if ($countryidlreturn1 == NIRELANDID)
+                    printf (" selected=selected");
+                printf (">%s</option>","Northern Ireland");
+                $displaynirelandret1 = TRUE;
+            }
+            printf ("<option value=%d", $count);
+            if ($count == $countryidlreturn1)
+                printf (" selected=selected");
+            printf (">%s</option>",$returnxmlstring->country[$count]);
+        }
+        for ($count = 0; $count <$nousstates; $count++)
+        {
+            printf ("<option value=%d", $count);
+            if ($count == $countryidlreturn1)
+                printf (" selected=selected");
+            printf (">%s</option>",$returnxmlstring->country[$count]);
+        }
+        printf ("</select>");
+        printf ("</td>");
+        printf ("</tr>");
+        }
+        else
+        {
+            printf ("<input type=\"hidden\" name=townlreturn1 value=\"%s\">",$townlreturn1);
+            printf ("<input type=\"hidden\" name=countryidlreturn1 value=\"%d\">",$countryidlreturn1);
+            printf ("<tr><td id=\"firstlreturnentry8\" colspan=2 class=\"errormessage\">Multiple cities found. Please choose one.</td></tr>");
+            printf ("<tr><td id=\"firstlreturnentry9\" colspan=2 class=\"entrylong\"><select class=\"entryinput\" name=\"townselectlreturn1\" size=5>");
+            for ($count = 0; $count <$towncountlreturn1; $count++)
+            {
+                $townidentifier = sprintf("%s#%s#%s#%d#%d#%d#%d", $townmatchlreturn1[$count]->town,$townmatchlreturn1[$count]->county,$townmatchlreturn1[$count]->country,$townmatchlreturn1[$count]->latitude,$townmatchlreturn1[$count]->longitude,$townmatchlreturn1[$count]->typetable,$townmatchlreturn1[$count]->zonetable);
+                printf ("<option");
+                if ($townidentifier == $townselectlreturn1)
+                     printf (" selected");
+                printf (" value=\"%s\">%s %s %s Lat (%.2lf) Long (%.2lf)</option>",$townidentifier,ucwords($townmatchlreturn1[$count]->town), ucwords($townmatchlreturn1[$count]->county), ucwords($townmatchlreturn1[$count]->country),($townmatchlreturn1[$count]->latitude/3600), ($townmatchlreturn1[$count]->longitude/3600)*-1);
+            }
+            printf ("</select></td></tr></select>");
+        }
+        printf ("<tr id=\"firstlreturnentry10\"><td class=\"entrytitle\">Last (Last Birthday)</td><td class=\"entrystandard\"><input type=\"radio\" style=\"padding:0px; margin:0px;\" name=\"whichlreturn1\" value=\"LAST\"");
+        if (!$whichreturn1 || $whichreturn1 == 'LAST')
+            printf (" checked");
+        printf ("></td></tr>");
+        printf ("<tr id=\"firstlreturnentry11\"><td class=\"entrytitle\">Next (Next Birthday)</td><td class=\"entrystandard\"><input type=\"radio\" style=\"padding:0px; margin:0px;\" name=\"whichlreturn1\" value=\"NEXT\"");
+        if ($whichreturn1 == 'NEXT')
+            printf (" checked");
+        printf ("></td></tr>");
+        printf ("<tr id=\"firstlreturnentry12\"><td class=\"entrytitle\" style=\"white-space: nowrap\">Following years Lunar Returns %s%.2lf",$currencysymbol,round((float) $report_amount * ((100.0-$extra_lunar_returns_discount)/100.0),2));
+        if ($extra_lunar_returns_discount)
+            printf ("<span class=\"discount\"><br>(Discounted by %d%%)</span>",$extra_lunar_returns_discount);
+
+        printf ("</td><td class=\"entrystandard\"><select name=\"extralreturn1\">");
+        for ($count = 0; $count < 100; $count++)
+        {
+            printf ("<option value=\"%d\"",$count);
+            if ($count == $extralreturn1)
+                printf (" selected");
+            printf (">%d</option>",$count);
+        }
+        printf ("</select></td></tr>");
         printf ("<tr><td colspan=2 class=\"contacttitle\">Enter Contact Details</td></tr>");
         if ($failednoemail)
             printf ("<tr><td colspan=2 class=\"errormessage\">*Please enter an Email Address</td></tr>");
@@ -648,7 +802,7 @@ function sr_display_input_form()
         for ($count = 0; $count < $num_payment_methods; $count++)
         {
             $cur_payment_method = $returnxmlstring->paramvalue[$count];
-            printf ("<button type=\"submit\" name=\"submitted1\" value=\"%s\">Pay via %s",$cur_payment_method,ucwords(strtolower($cur_payment_method)));
+            printf ("<button type=\"submit\" name=\"submitted1\" value=\"%s\" class=\"button green medium\">Pay via %s",$cur_payment_method,ucwords(strtolower($cur_payment_method)));
         }
         printf ("</tr>");
         printf ("</table>");
@@ -685,6 +839,10 @@ function sr_display_input_form()
         $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
         $returnxmlstring = sr_stars_loadXML($url);
         $extra_solar_returns_discount = (int) $returnxmlstring->paramvalue[0];
+        $paramname = 'EXTRA_LUNAR_RETURNS_DISCOUNT';
+        $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
+        $returnxmlstring = sr_stars_loadXML($url);
+        $extra_lunar_returns_discount = (int) $returnxmlstring->paramvalue[0];
 
         $paramname = 'REPORT_TYPE';
         $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
@@ -719,7 +877,7 @@ function sr_display_input_form()
                         printf ("<td>%s</td>",$report_description);
                         printf ("<td>%s%.2lf</td>",$currencysymbol,$report_amount);
                         printf ("<td colspan=2 style=\"text-align:center\"><input");
-                        if (isset($_POST['extraboth']) && is_array($_POST['extraboth']) && in_array($cur_reporttype,$_POST['extraboth']))
+                        if (isset($_POST['extraboth']) && in_array($cur_reporttype,$_POST['extraboth']))
                             printf (" checked");
                         printf (" type=\"checkbox\" name=\"extraboth[]\" value=\"%s\"></input></td>",$cur_reporttype);
                         printf ("</tr>");
@@ -731,7 +889,9 @@ function sr_display_input_form()
         for ($count = 0; $count < $num_reports; $count++)
         {
             $cur_reporttype = $returnxmlstring->paramvalue[$count];
-            if ($cur_reporttype != ADULT && $cur_reporttype != 'CHILD' && $unknowntime1 == 'Y')
+            if ($cur_reporttype != 'ADULT' && $cur_reporttype != 'CHILD' && $unknowntime1 == 'Y')
+                continue;
+            if ($cur_reporttype == 'LUNAR RETURN')
                 continue;
             $report_description = $returnxmlstring2->paramvalue[$count];
             if ($reporttype != $cur_reporttype)
@@ -753,7 +913,7 @@ function sr_display_input_form()
                     printf ("<td>%s</td>",$report_description);
                     printf ("<td>%s%.2lf</td>",$currencysymbol,$report_amount);
                     printf ("<td style=\"text-align:center\"><input");
-                    if (isset($_POST['extrauser0']) && is_array($_POST['extrauser0']) && in_array($cur_reporttype,$_POST['extrauser0']))
+                    if (isset($_POST['extrauser0']) && in_array($cur_reporttype,$_POST['extrauser0']))
                         printf (" checked");
                     if ($cur_reporttype == 'SOLAR RETURN')
                     {
@@ -766,7 +926,7 @@ function sr_display_input_form()
                     if ($reporttype == 'SYNASTRY' || $reporttype == 'STARMATCH' || $reporttype == 'COMPOSITE')
                     {
                         printf ("<td style=\"text-align:center\"><input");
-                        if (isset($_POST['extrauser1']) && is_array($_POST['extrauser1']) && in_array($cur_reporttype,$_POST['extrauser1']))
+                        if (isset($_POST['extrauser1']) && in_array($cur_reporttype,$_POST['extrauser1']))
                             printf (" checked");
                         if ($cur_reporttype == 'SOLAR RETURN')
                         {
@@ -1061,13 +1221,15 @@ function sr_display_input_form()
         for ($count = 0; $count < $num_payment_methods; $count++)
         {
             $cur_payment_method = $returnxmlstring->paramvalue[$count];
-            printf ("<button type=\"submit\" name=\"submitted2\" value=\"%s\">Pay via %s",$cur_payment_method,ucwords(strtolower($cur_payment_method)));
+            printf ("<button type=\"submit\" name=\"submitted2\" value=\"%s\" class=\"button green medium\">Pay via %s",$cur_payment_method,ucwords(strtolower($cur_payment_method)));
         }
         printf ("</tr>");
         printf ("</table>");
         printf ("<input type=\"hidden\" name=\"reporttype\" value=\"%s\"></input>",$reporttype);
         if ($reporttype == 'SOLAR RETURN')
             printf ("<input type=\"hidden\" name=\"extrareturn1\" value=\"%s\"></input>",$extrareturn1);
+        if ($reporttype == 'LUNAR RETURN')
+            printf ("<input type=\"hidden\" name=\"extralreturn1\" value=\"%s\"></input>",$extralreturn1);
         if ($reporttype == 'FORECAST')
             printf ("<input type=\"hidden\" name=\"extraforecast1\" value=\"%s\"></input>",$extraforecast1);
 
@@ -1088,6 +1250,12 @@ function sr_display_input_form()
             printf ("<input type=\"hidden\" name=\"whichreturn1\" value=\"%s\"></input>",$whichreturn1);
             printf ("<input type=\"hidden\" name=\"countryidreturn1\" value=\"%s\"></input>",$countryidreturn1);
         }
+        if ($reporttype == 'LUNAR RETURN')
+        {
+            printf ("<input type=\"hidden\" name=\"lusebirth1\" value=\"%s\"></input>",$lusebirth1);
+            printf ("<input type=\"hidden\" name=\"whichlreturn1\" value=\"%s\"></input>",$whichlreturn1);
+            printf ("<input type=\"hidden\" name=\"countryidlreturn1\" value=\"%s\"></input>",$countryidlreturn1);
+        }
         printf ("<input type=\"hidden\" name=\"dob2\" value=\"%s\"></input>",$dob2);
         printf ("<input type=\"hidden\" name=\"time2\" value=\"%s\"></input>",$time2);
         if ($unknowntime2 == 'Y')
@@ -1106,6 +1274,13 @@ function sr_display_input_form()
             else
                 printf ("<input type=\"hidden\" name=\"townselectreturn1\" value=\"%s#%s#%s#%d#%d#%d#%d\"></input>",$townmatchreturn1[0]->town,$townmatchreturn1[0]->county,$townmatchreturn1[0]->country,$townmatchreturn1[0]->latitude,$townmatchreturn1[0]->longitude,$townmatchreturn1[0]->typetable,$townmatchreturn1[0]->zonetable);
         }
+        if ($reporttype == 'LUNAR  RETURN')
+        {
+            if ($townselectlreturn1)
+                printf ("<input type=\"hidden\" name=\"townselectlreturn1\" value=\"%s\"></input>",$townselectlreturn1);
+            else
+                printf ("<input type=\"hidden\" name=\"townselectlreturn1\" value=\"%s#%s#%s#%d#%d#%d#%d\"></input>",$townmatchlreturn1[0]->town,$townmatchlreturn1[0]->county,$townmatchlreturn1[0]->country,$townmatchlreturn1[0]->latitude,$townmatchlreturn1[0]->longitude,$townmatchlreturn1[0]->typetable,$townmatchlreturn1[0]->zonetable);
+        }
         if (isset( $_POST['submitted2']) && $reporttype != 'SOLAR RETURN')
         {
             if ($townselectreturn1)
@@ -1116,6 +1291,24 @@ function sr_display_input_form()
                 printf ("<input type=\"hidden\" name=\"townselectreturn2\" value=\"%s\"></input>",$townselectreturn2);
             else
                 printf ("<input type=\"hidden\" name=\"townselectreturn2\" value=\"%s#%s#%s#%d#%d#%d#%d\"></input>",$townmatchreturn2[0]->town,$townmatchreturn2[0]->county,$townmatchreturn2[0]->country,$townmatchreturn2[0]->latitude,$townmatchreturn2[0]->longitude,$townmatchreturn2[0]->typetable,$townmatchreturn2[0]->zonetable);
+        }
+        if ($reporttype == 'LUNAR RETURN')
+        {
+            if ($townselectlreturn1)
+                printf ("<input type=\"hidden\" name=\"townselectlreturn1\" value=\"%s\"></input>",$townselectlreturn1);
+            else
+                printf ("<input type=\"hidden\" name=\"townselectlreturn1\" value=\"%s#%s#%s#%d#%d#%d#%d\"></input>",$townmatchlreturn1[0]->town,$townmatchlreturn1[0]->county,$townmatchlreturn1[0]->country,$townmatchlreturn1[0]->latitude,$townmatchlreturn1[0]->longitude,$townmatchlreturn1[0]->typetable,$townmatchlreturn1[0]->zonetable);
+        }
+        if (isset( $_POST['submitted2']) && $reporttype != 'LUNAR RETURN')
+        {
+            if ($townselectlreturn1)
+                printf ("<input type=\"hidden\" name=\"townselectlreturn1\" value=\"%s\"></input>",$townselectlreturn1);
+            else
+                printf ("<input type=\"hidden\" name=\"townselectlreturn1\" value=\"%s#%s#%s#%d#%d#%d#%d\"></input>",$townmatchlreturn1[0]->town,$townmatchlreturn1[0]->county,$townmatchlreturn1[0]->country,$townmatchlreturn1[0]->latitude,$townmatchlreturn1[0]->longitude,$townmatchlreturn1[0]->typetable,$townmatchlreturn1[0]->zonetable);
+            if ($townselectlreturn2)
+                printf ("<input type=\"hidden\" name=\"townselectlreturn2\" value=\"%s\"></input>",$townselectlreturn2);
+            else
+                printf ("<input type=\"hidden\" name=\"townselectlreturn2\" value=\"%s#%s#%s#%d#%d#%d#%d\"></input>",$townmatchlreturn2[0]->town,$townmatchlreturn2[0]->county,$townmatchlreturn2[0]->country,$townmatchlreturn2[0]->latitude,$townmatchlreturn2[0]->longitude,$townmatchlreturn2[0]->typetable,$townmatchlreturn2[0]->zonetable);
         }
         printf ("<input type=\"hidden\" name=\"email\" value=\"%s\"></input>",$email);
 
@@ -1137,6 +1330,7 @@ function sr_validate_page()
     global $failedmultipletown1;
     global $foundvaguetown1;
     global $townmatch2;
+    global $towncount2;
     global $failednoname2;
     global $failednogender2;
     global $failednotown2;
@@ -1148,19 +1342,29 @@ function sr_validate_page()
     global $failedmultipletown2;
     global $foundvaguetown2;
     global $townmatchreturn1;
+    global $towncountreturn1;
     global $failednotownreturn1;
     global $failednocountryreturn1;
     global $failedzerotownreturn1;
-    global $founddmultipletownreturn1;
+    global $foundmultipletownreturn1;
     global $failedmultipletownreturn1;
     global $foundvaguetownreturn1;
     global $townmatchreturn2;
+    global $towncountreturn2;
     global $failednotownreturn2;
     global $failednocountryreturn2;
     global $failedzerotownreturn2;
-    global $founddmultipletownreturn2;
+    global $foundmultipletownreturn2;
     global $failedmultipletownreturn2;
     global $foundvaguetownreturn2;
+    global $townmatchlreturn1;
+    global $towncountlreturn1;
+    global $failednotownlreturn1;
+    global $failednocountrylreturn1;
+    global $failedzerotownlreturn1;
+    global $foundmultipletownlreturn1;
+    global $failedmultipletownlreturn1;
+    global $foundvaguetownlreturn1;
     global $failednoemail;
     global $starspath;
     global $nextpage;
@@ -1199,6 +1403,13 @@ function sr_validate_page()
     $townreturn2 =  $_POST["townreturn2"];
     $countryidreturn2 = $_POST['countryidreturn2'];
     $townselectreturn2 = $_POST['townselectreturn2'];
+    $lusebirth1 = $_POST['lusebirth1'];
+    if (!$lusebirth1)
+        $lusebirth1 = 'N';
+    $whichlreturn1 = $_POST['whichlreturn1'];
+    $townlreturn1 =  $_POST["townlreturn1"];
+    $countryidlreturn1 = $_POST['countryidlreturn1'];
+    $townselectlreturn1 = $_POST['townselectlreturn1'];
 
     if (isset($unknowntime1))
        $unknowntime1 = 'Y';
@@ -1385,7 +1596,6 @@ function sr_validate_page()
                         else
                             $countryreturn1 = $returnxmlstring->country[$count];
     
-                        $townmatchreturn1[$count] = new StdClass;
                         $townmatchreturn1[$count]->town=$returnxmlstring->town[$count];
                         $townmatchreturn1[$count]->county=$returnxmlstring->county[$count];
                         $townmatchreturn1[$count]->country=$countryreturn1;
@@ -1413,9 +1623,68 @@ function sr_validate_page()
                 }
             }
         }
+        elseif ($reporttype == 'LUNAR RETURN')
+        {
+            if ($lusebirth1 == 'N')
+            {
+                if (!$townlreturn1)
+                    $failednotownlreturn1 = TRUE;
+                if ($countryidlreturn1 < 0)
+                    $failednocountrylreturn1 = TRUE;
+                if (!$failednotownlreturn1 && !$failednocountrylreturn1)
+                {
+                    if ($countryidlreturn1 == WALESID || $countryidlreturn1 == SCOTLANDID || $countryidlreturn1 == ENGLANDID || $countryidlreturn1 == NIRELANDID)
+                        $searchcountryidlreturn1 = $ukid;
+                    else
+                        $searchcountryidlreturn1 = $countryidlreturn1;
+        
+                    $url = sprintf("%s/listtowns.php?countryid=%d&town=%s",$starspath,$searchcountryidlreturn1,urlencode($townlreturn1));
+        		    $returnxmlstring = sr_stars_loadXML($url);
+                    $towncountlreturn1 = $returnxmlstring->rowsreturned;
+                    for ($count = 0; $count < $towncountlreturn1; $count++)
+                    {
+    
+                        if ($countryidlreturn1 == WALESID)
+                            $countrylreturn1 = 'Wales';
+                        elseif ($countryidlreturn1 == SCOTLANDID)
+                            $countrylreturn1 = 'Scotland';
+                        elseif ($countryidlreturn1 == ENGLANDID)
+                            $countrylreturn1 = 'England';
+                        elseif ($countryidlreturn1 == NIRELANDID)
+                            $countrylreturn1 = 'Northern Ireland';
+                        else
+                            $countrylreturn1 = $returnxmlstring->country[$count];
+    
+                        $townmatchlreturn1[$count]->town=$returnxmlstring->town[$count];
+                        $townmatchlreturn1[$count]->county=$returnxmlstring->county[$count];
+                        $townmatchlreturn1[$count]->country=$countrylreturn1;
+                        $townmatchlreturn1[$count]->latitude=$returnxmlstring->latitude[$count];
+                        $townmatchlreturn1[$count]->longitude=$returnxmlstring->longitude[$count];
+                        $townmatchlreturn1[$count]->typetable=$returnxmlstring->typetable[$count];
+                        $townmatchlreturn1[$count]->zonetable=$returnxmlstring->zonetable[$count];
+                        $townmatchlreturn1[$count]->vague=$returnxmlstring->vague[$count];
+    
+                    }
+                    if ($towncountlreturn1 == 0)
+                    {
+                        $failedzerotownlreturn1 = true;
+                    }
+                    else if ($townmatchlreturn1[0]->vague == 'TRUE')
+                    {
+                        $foundvaguetownlreturn1 = TRUE;
+                    }
+                    else if ($towncountlreturn1 > 1)
+                    {
+                        $foundmultipletownlreturn1 = true;
+                        if (!$townselectlreturn1)
+                            $failedmultipletownlreturn1 = TRUE;
+                    }
+                }
+            }
+        }
         if (!$email)
             $failednoemail = TRUE;
-        if ($failednodob1 || $failednotime1 || $failednoname1 || $failednogender1 || $failednotown1 || $failednocountry1 || $failedzerotown1 || $failedmultipletown1 || $foundvaguetown1 || $failednodob2 || $failednotime2 || $failednoname2 || $failednogender2 || $failednotown2 || $failednocountry2 || $failedzerotown2 || $failedmultipletown2 || $foundvaguetown2 || $failednotownreturn1 || $failednocountryreturn1 || $failedzerotownreturn1 || $failedmultipletownreturn1 || $foundvaguetownreturn1 || $failednoemail)
+        if ($failednodob1 || $failednotime1 || $failednoname1 || $failednogender1 || $failednotown1 || $failednocountry1 || $failedzerotown1 || $failedmultipletown1 || $foundvaguetown1 || $failednodob2 || $failednotime2 || $failednoname2 || $failednogender2 || $failednotown2 || $failednocountry2 || $failedzerotown2 || $failedmultipletown2 || $foundvaguetown2 || $failednotownreturn1 || $failednocountryreturn1 || $failedzerotownreturn1 || $failedmultipletownreturn1 || $foundvaguetownreturn1 || $failednotownlreturn1 || $failednocountrylreturn1 || $failedzerotownlreturn1 || $failedmultipletownlreturn1 || $foundvaguetownlreturn1 || $failednoemail)
             $retstatus = 0;
     }
     elseif ($lastpage == 2)
@@ -1458,7 +1727,6 @@ function sr_validate_page()
                     else
                         $countryreturn1 = $returnxmlstring->country[$count];
 
-                    $townmatchreturn1[$count] = new StdClass;
                     $townmatchreturn1[$count]->town=$returnxmlstring->town[$count];
                     $townmatchreturn1[$count]->county=$returnxmlstring->county[$count];
                     $townmatchreturn1[$count]->country=$countryreturn1;
@@ -1523,7 +1791,6 @@ function sr_validate_page()
                     else
                         $countryreturn2 = $returnxmlstring->country[$count];
 
-                    $townmatchreturn2[$count] = new StdClass;
                     $townmatchreturn2[$count]->town=$returnxmlstring->town[$count];
                     $townmatchreturn2[$count]->county=$returnxmlstring->county[$count];
                     $townmatchreturn2[$count]->country=$countryreturn2;
@@ -1729,6 +1996,14 @@ function sr_process_report()
             $townreturn2 =  $_POST["townreturn2"];
             $countryidreturn2 = $_POST['countryidreturn2'];
             $townselectreturn2 = $_POST['townselectreturn2'];
+            $lusebirth1 = $_POST['lusebirth1'];
+            if (!$lusebirth1)
+                $lusebirth1 = 'N';
+            $whichlreturn1 = $_POST['whichlreturn1'];
+            $extralreturn1 = $_POST['extralreturn1'];
+            $townlreturn1 =  $_POST["townlreturn1"];
+            $countryidlreturn1 = $_POST['countryidlreturn1'];
+            $townselectlreturn1 = $_POST['townselectlreturn1'];
 
             if (isset($unknowntime1))
                $unknowntime1 = 'Y';
@@ -1806,6 +2081,33 @@ function sr_process_report()
                 $longitudereturn1 = ($longitudereturn1 / 3600) * -1;
             }
 
+            if ($reporttype == 'LUNAR RETURN' && $lusebirth1 == 'N')
+            {
+                if ($townselectlreturn1)
+                {
+                    $splittownselectlreturn1 = explode("#",$townselectlreturn1);
+                    $townlreturn1 = $splittownselectlreturn1[0];
+                    $countylreturn1 = $splittownselectlreturn1[1];
+                    $countrylreturn1 = $splittownselectlreturn1[2];
+                    $latitudelreturn1 = $splittownselectlreturn1[3];
+                    $longitudelreturn1 = $splittownselectlreturn1[4];
+                    $typetablelreturn1 = $splittownselectlreturn1[5];
+                    $zonetablelreturn1 = $splittownselectlreturn1[6];
+                }
+                else
+                {
+                    $townlreturn1 = $townmatchlreturn1[0]->town;
+                    $countylreturn1= $townmatchlreturn1[0]->county;
+                    $countrylreturn1= $townmatchlreturn1[0]->country;
+                    $latitudelreturn1 = $townmatchlreturn1[0]->latitude;
+                    $longitudelreturn1 = $townmatchlreturn1[0]->longitude;
+                    $typetablelreturn1 = $townmatchlreturn1[0]->typetable;
+                    $zonetablelreturn1 = $townmatchlreturn1[0]->zonetable;
+                }
+    	        $latitudelreturn1 = $latitudelreturn1 / 3600;
+                $longitudelreturn1 = ($longitudelreturn1 / 3600) * -1;
+            }
+
             if ($reporttype == 'SYNASTRY' || $reporttype == 'STARMATCH' || $reporttype == 'COMPOSITE')
             {
                 if ($townselect2)
@@ -1873,6 +2175,11 @@ function sr_process_report()
             $returnxmlstring = sr_stars_loadXML($url);
             $extra_solar_returns_discount = (int) $returnxmlstring->paramvalue[0];
 
+            $paramname = 'EXTRA_LUNAR_RETURNS_DISCOUNT';
+            $url = $starspath . "/getserviceparam.php?apikey=" . urlencode($apikey) . "&paramname=" . urlencode($paramname);
+            $returnxmlstring = sr_stars_loadXML($url);
+            $extra_lunar_returns_discount = (int) $returnxmlstring->paramvalue[0];
+
             if ($reporttype == 'FORECAST')
                 $processstyle = 'ASYNCHRONOUS';
             else
@@ -1884,6 +2191,8 @@ function sr_process_report()
                   <report index="0" type="%s" level="gold" userId="0" ',$processstyle,$reporttype);
             if ($reporttype == 'SOLAR RETURN')
                 $params = sprintf ('%sextraYears="%s"',$params,$extrareturn1);
+            if ($reporttype == 'LUNAR RETURN')
+                $params = sprintf ('%sextraMonths="%s"',$params,$extralreturn1);
             if ($reporttype == 'FORECAST')
                 $params = sprintf ('%sextraYears="%s" planetpositions="off"',$params,$extraforecast1);
             if ($reporttype == 'PROGRESSED')
@@ -2025,6 +2334,39 @@ function sr_process_report()
                 }
                 
             }
+            if ($reporttype == 'LUNAR RETURN' || $extralreturn0 )
+            {
+                if ($lusebirth1 == 'Y')
+                {
+                    $params = sprintf('%s lcurlatitude="%lf" lcurlongitude="%lf" lcurcountry="%s" lcurcity="%s" lcurtypetable="%d" lcurzonetable="%d" lretdirection="%s"',$params,$latitude1,$longitude1,$country1,addslashes($town1),$typetable1,$zonetable1,$whichlreturn1);
+                }
+                else
+                {
+                    if ($reporttype == 'LUNAR RETURN')
+                    {
+                        $_SESSION['session_townlreturn1_primary'] = (string) $townlreturn1;
+                        $_SESSION['session_countryidlreturn1_primary'] = $countryidlreturn1;
+                    }
+                    else
+                    {
+                        $_SESSION['session_townlreturn1_additional'] = (string) $townlreturn1;
+                        $_SESSION['session_countryidlreturn1_additional'] = $countryidlreturn1;
+                    }
+               
+                    $params = sprintf('%s lcurlatitude="%lf" lcurlongitude="%lf" lcurcountry="%s" lcurcity="%s" lcurtypetable="%d" lcurzonetable="%d" lretdirection="%s"',$params,$latitudelreturn1,$longitudelreturn1,$countrylreturn1,addslashes($townlreturn1),$typetablelreturn1,$zonetablelreturn1,$whichlreturn1);
+                }
+                if ($reporttype == 'LUNAR RETURN')
+                {
+                    $_SESSION['session_lusebirth1_primary'] = $lusebirth1;
+                    $_SESSION['session_whichlreturn1_primary'] = $whichlreturn1;
+                }
+                else
+                {
+                    $_SESSION['session_lusebirth1_additional'] = $lusebirth1;
+                    $_SESSION['session_whichlreturn1_additional'] = $whichlreturn1;
+                }
+                
+            }
             $params = sprintf('%s/>',$params);
         
             if ($reporttype == 'SYNASTRY' || $reporttype == 'STARMATCH' || $reporttype == 'COMPOSITE')
@@ -2072,6 +2414,11 @@ function sr_process_report()
             {
                 $extrareturn2_total = $extrareturn2 * round((float) $report_amount * ((100.0-$extra_solar_returns_discount)/100.0),2);
                 $report_total = $report_total + $extrareturn2_total;
+            }
+            if ($extralreturn1)
+            {
+                $extralreturn1_total = $extralreturn1 * round((float) $report_amount * ((100.0-$extra_lunar_returns_discount)/100.0),2);
+                $report_total = $report_total + $extralreturn1_total;
             }
         
             $paramname = 'REPORT_CURRENCY';
