@@ -29,6 +29,8 @@ define("SCOTLANDID",2000);
 define("ENGLANDID",3000);
 define("NIRELANDID",4000);
 
+error_reporting(E_ERROR | E_PARSE);
+
 if (IMPLEMENTATION == "STANDARD")
 {
     printf("<link rel=\"stylesheet\" type=\"text/css\" href=\"sr_stars.css?id=%d\">",time());
