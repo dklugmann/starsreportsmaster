@@ -41,7 +41,7 @@ header('Content-Type: text/html; charset=utf-8');
 <script type="text/javascript" src="stars.js?<?php echo time(); ?>" language="javascript1.2"></script>
 </head>
 <body>
-<?
+<?php
    $url = $starspath . "/getreport.php?serviceid=" . $serviceid . "&sequence=" . $sequence . "&apikey=" . urlencode($apikey) . "&email=" . urlencode($email);
    $returnxmlstring = loadXML($url);
 

@@ -1,4 +1,4 @@
-<?
+<?php
 function loadXML($url) {
     if (ini_get('allow_url_fopen') == true) {
       return load_xml_fopen($url);

@@ -1,4 +1,4 @@
-<?
+<?php
     include("stars_config.php");
     include("stars_functions.php");
     $interppage = $_GET['interppage'];
